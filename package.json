@@ -1,0 +1,122 @@
+{
+    "name": "electron-medical-app",
+    "version": "1.0.0",
+    "main": "./out/main/main.js",
+    "scripts": {
+        "dev": "electron-vite dev",
+        "server": "tsx backend/server.ts",
+        "build": "electron-vite build",
+        "preview": "electron-vite preview",
+        "dist": "npm run build && electron-builder",
+        "dist:win": "npm run build && electron-builder --win",
+        "dist:mac": "npm run build && electron-builder --mac",
+        "dist:linux": "npm run build && electron-builder --linux",
+        "prepare:python": "node scripts/prepare-python.js",
+        "postinstall": "npm run prepare:python"
+    },
+    "dependencies": {
+        "@electron-toolkit/preload": "^3.0.0",
+        "@electron-toolkit/utils": "^3.0.0",
+        "@mantine/core": "^8.3.12",
+        "@mantine/hooks": "^8.3.12",
+        "ag-grid-community": "^35.0.0",
+        "ag-grid-react": "^35.0.0",
+        "electron-updater": "^6.1.7",
+        "postcss-preset-mantine": "^1.18.0",
+        "postcss-simple-vars": "^7.0.1",
+        "socket.io-client": "^4.7.4"
+    },
+    "devDependencies": {
+        "@electron-toolkit/tsconfig": "^1.0.1",
+        "@tailwindcss/postcss": "^4.1.18",
+        "@types/node": "^18.19.8",
+        "@types/react": "^18.2.43",
+        "@types/react-dom": "^18.2.17",
+        "@vitejs/plugin-react": "^4.2.1",
+        "autoprefixer": "^10.4.23",
+        "electron": "^28.1.0",
+        "electron-builder": "^24.9.1",
+        "electron-vite": "^2.0.0",
+        "postcss": "^8.5.6",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "tailwindcss": "^4.1.18",
+        "tsx": "^4.21.0",
+        "typescript": "^5.3.3",
+        "vite": "^5.0.11"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "electron",
+            "esbuild"
+        ]
+    },
+    "build": {
+        "appId": "com.medical.app",
+        "productName": "Medical App",
+        "directories": {
+            "output": "dist",
+            "buildResources": "build"
+        },
+        "files": [
+            "out/**/*",
+            "backend/**/*",
+            "!backend/node_modules/**/*",
+            "!backend/venv/**/*",
+            "!backend/**/*.ts",
+            "!backend/**/*.map",
+            "resources/**/*",
+            "package.json"
+        ],
+        "extraResources": [
+            {
+                "from": "backend/venv",
+                "to": "backend/venv",
+                "filter": ["**/*"]
+            },
+            {
+                "from": "backend/node_modules",
+                "to": "backend/node_modules",
+                "filter": ["**/*"]
+            }
+        ],
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": ["x64"]
+                }
+            ],
+            "icon": "resources/icon.png",
+            "requestedExecutionLevel": "requireAdministrator"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "installerIcon": "resources/icon.png",
+            "uninstallerIcon": "resources/icon.png",
+            "installerHeaderIcon": "resources/icon.png",
+            "include": "build/installer.nsh"
+        },
+        "mac": {
+            "target": [
+                {
+                    "target": "dmg",
+                    "arch": ["x64", "arm64"]
+                }
+            ],
+            "icon": "resources/icon.png",
+            "category": "public.app-category.medical"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb"
+            ],
+            "icon": "resources/icon.png",
+            "category": "Medical"
+        }
+    }
+}

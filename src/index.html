@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Electron Medical App</title>
+    <!-- Content Security Policy to allow socket.io connection -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:5175 ws://localhost:5175" />
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+</body>
+
+</html>
