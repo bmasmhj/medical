@@ -5,6 +5,7 @@ import icon from '/icon.png'
 import { spawn, execSync } from 'child_process'
 import { join as joinPath } from 'path'
 import { existsSync } from 'fs'
+import { dialog } from 'electron'
 
 function createWindow(): void {
     // Create the browser window.
@@ -196,7 +197,37 @@ app.whenReady().then(() => {
     // Set app user model id for windows
     electronApp.setAppUserModelId('com.electron')
 
-    startBackend();
+    // Check dependencies before starting backend
+    const missingDeps: string[] = [];
+    if (!checkNodeJS()) {
+        missingDeps.push('Node.js');
+    }
+    if (!checkPython()) {
+        missingDeps.push('Python');
+    }
+
+    if (missingDeps.length === 0) {
+        startBackend();
+    } else {
+        dialog.showMessageBox({
+            type: 'warning',
+            title: 'Missing Dependencies',
+            message: `The following dependencies are missing: ${missingDeps.join(', ')}`,
+            detail: 'Please install the missing dependencies and restart the application.\n\n' +
+                    'Node.js: https://nodejs.org/\n' +
+                    'Python: https://www.python.org/downloads/',
+            buttons: ['Open Download Pages', 'OK']
+        }).then((result: any) => {
+            if (result.response === 0) {
+                if (missingDeps.includes('Node.js')) {
+                    shell.openExternal('https://nodejs.org/');
+                }
+                if (missingDeps.includes('Python')) {
+                    shell.openExternal('https://www.python.org/downloads/');
+                }
+            }
+        });
+    }
 
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.

@@ -6,11 +6,13 @@
         "dev": "electron-vite dev",
         "server": "tsx backend/server.ts",
         "build": "electron-vite build",
+        "build:backend": "node scripts/build-backend.js",
         "preview": "electron-vite preview",
-        "dist": "npm run build && electron-builder",
-        "dist:win": "npm run build && electron-builder --win",
-        "dist:mac": "npm run build && electron-builder --mac",
-        "dist:linux": "npm run build && electron-builder --linux",
+        "prebuild": "node scripts/pre-build.js",
+        "dist": "npm run prebuild && npm run build:backend && npm run build && electron-builder",
+        "dist:win": "npm run prebuild && npm run build:backend && npm run build && electron-builder --win",
+        "dist:mac": "npm run prebuild && npm run build:backend && npm run build && electron-builder --mac",
+        "dist:linux": "npm run prebuild && npm run build:backend && npm run build && electron-builder --linux",
         "prepare:python": "node scripts/prepare-python.js",
         "postinstall": "npm run prepare:python"
     },
@@ -65,6 +67,7 @@
             "!backend/venv/**/*",
             "!backend/**/*.ts",
             "!backend/**/*.map",
+            "!backend/tsconfig.json",
             "resources/**/*",
             "package.json"
         ],
@@ -72,19 +75,25 @@
             {
                 "from": "backend/venv",
                 "to": "backend/venv",
-                "filter": ["**/*"]
+                "filter": [
+                    "**/*"
+                ]
             },
             {
                 "from": "backend/node_modules",
                 "to": "backend/node_modules",
-                "filter": ["**/*"]
+                "filter": [
+                    "**/*"
+                ]
             }
         ],
         "win": {
             "target": [
                 {
                     "target": "nsis",
-                    "arch": ["x64"]
+                    "arch": [
+                        "x64"
+                    ]
                 }
             ],
             "icon": "resources/icon.png",
@@ -95,16 +104,16 @@
             "allowToChangeInstallationDirectory": true,
             "createDesktopShortcut": true,
             "createStartMenuShortcut": true,
-            "installerIcon": "resources/icon.png",
-            "uninstallerIcon": "resources/icon.png",
-            "installerHeaderIcon": "resources/icon.png",
             "include": "build/installer.nsh"
         },
         "mac": {
             "target": [
                 {
                     "target": "dmg",
-                    "arch": ["x64", "arm64"]
+                    "arch": [
+                        "x64",
+                        "arm64"
+                    ]
                 }
             ],
             "icon": "resources/icon.png",

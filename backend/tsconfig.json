@@ -6,6 +6,15 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "outDir": "./dist"
-    }
+        "outDir": "./",
+        "rootDir": "./"
+    },
+    "include": [
+        "*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "venv",
+        "dist"
+    ]
 }
