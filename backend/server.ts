@@ -12,6 +12,7 @@ import { fetchProductData } from './chemistwarehouse';
 import axios from 'axios';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { fetchCategoryData } from './categoryFetcher';
 
 const execAsync = promisify(exec);
 
@@ -263,3 +264,9 @@ httpServer.listen(PORT, () => {
 // puppeter
 // 
 
+
+// fetchCategoryData('Medicines');
+// console.log('fetching product data');
+// fetchProductData('113908','ozempic-1-34mg-ml-3ml-pre-filled-pen-1-semaglutide').then((data) => {
+//     console.log(data);
+// });

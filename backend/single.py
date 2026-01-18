@@ -34,20 +34,59 @@ def productdetail(link):
         stealth = Stealth()
         stealth.apply_stealth_sync(page)
         page.goto(link)
+        time.sleep(2)  # Wait for page to load
+        
+        # Click cookie button first
+        try:
+            page.get_by_role("button", name="Accept All Cookies").click(timeout=5000)
+            time.sleep(1)  # Wait for cookie dialog to close
+        except Exception as e:
+            print(f"Cookie button not found or already accepted: {e}")
+        
+        # Get initial content
         content = page.content()
-         # click cookie 
-        # <button id="onetrust-accept-btn-handler">Accept All Cookies</button>
-        page.get_by_role("button", name="Accept All Cookies").click()
-        # save html to content.html
-
         soup = BeautifulSoup(content, "html.parser")
+        
         # space-y-space-400 md:space-y-space-500 lg:space-y-space-600 flex w-full flex-col items-start self-stretch lg:w-[26rem] lg:flex-shrink-0
         desc_div = soup.find("div", class_="space-y-space-400 md:space-y-space-500 lg:space-y-space-600 flex w-full flex-col items-start self-stretch lg:w-[26rem] lg:flex-shrink-0")
-        if desc_div:
-            rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
-            print(rrp)
+        
+        # Click eligibility dropdown - use .first() to select the combobox button (not the listbox menu)
+        try:
+            # page.get by class
+            page.locator(
+                ".rounded-b-shape-button-input.ring-1.px-space-400.text-colour-body-light."
+                "rounded-t-shape-button-input.flex.h-\\[60px\\].items-center."
+                "justify-between.border-0.ring-inset.ring-offset-0."
+                "ring-neutral-300.bg-white"
+            ).click()
 
-                    
+            
+            # Get updated content after clicking
+            content = page.content()
+            soup = BeautifulSoup(content, "html.parser")
+            ul_elibility = soup.find("ul", class_="h-max max-h-[316px] overflow-y-auto bg-white p-0")
+            
+            if ul_elibility:
+                # Get all li text
+                li_elibility = ul_elibility.find_all("li", class_="p-space-400 flex flex-col aria-disabled:text-gray-500")
+                for li in li_elibility:
+                    if li.text.strip() == "No Medicare card":
+                       page.get_by_role("option", name="No Medicare card").click()
+                       time.sleep(1)
+                       content = page.content()
+                       soup = BeautifulSoup(content, "html.parser")
+                       desc_div = soup.find("div", class_="space-y-space-400 md:space-y-space-500 lg:space-y-space-600 flex w-full flex-col items-start self-stretch lg:w-[26rem] lg:flex-shrink-0")
+                       if desc_div:
+                            rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
+                            print(rrp)
+
+            else:
+                if desc_div:
+                    rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
+                    print(rrp)
+        except Exception as e:
+            print(f"Error clicking eligibility dropdown: {e}")
+       
 
 def main():
 #    get url from input 

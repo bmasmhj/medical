@@ -13,7 +13,19 @@ try {
     // Install backend dependencies if node_modules doesn't exist
     if (!fs.existsSync(path.join(backendPath, 'node_modules'))) {
         console.log('Installing backend dependencies...');
-        execSync('pnpm install', { stdio: 'inherit' });
+        try {
+            // Try pnpm first, fallback to npm
+            try {
+                execSync('pnpm --version', { stdio: 'ignore' });
+                const command = process.platform === 'win32' ? 'pnpm.cmd install' : 'pnpm install';
+                execSync(command, { stdio: 'inherit' });
+            } catch {
+                execSync('npm install', { stdio: 'inherit' });
+            }
+        } catch (error) {
+            console.error('Failed to install backend dependencies:', error.message);
+            throw error;
+        }
     }
     
     // Build TypeScript

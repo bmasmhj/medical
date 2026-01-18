@@ -72,68 +72,69 @@ function checkNodeJS() {
     return false;
   }
 }
-function checkPython() {
-  return getPythonPath() !== null;
-}
-function showDependencyDialog(missing) {
-  const dialog2 = require("electron").dialog;
-  dialog2.showMessageBox({
-    type: "warning",
-    title: "Missing Dependencies",
-    message: `The following dependencies are missing: ${missing.join(", ")}`,
-    detail: "Please install the missing dependencies and restart the application.\n\nNode.js: https://nodejs.org/\nPython: https://www.python.org/downloads/",
-    buttons: ["OK"]
-  });
+async function autoInstallDependencies() {
+  const path2 = require("path");
+  const fs2 = require("fs");
+  const autoInstallScript = path2.join(__dirname, "../../scripts/auto-install.js");
+  if (fs2.existsSync(autoInstallScript)) {
+    try {
+      const { autoInstall } = require(autoInstallScript);
+      const result = await autoInstall();
+      return result.success;
+    } catch (error) {
+      console.error("Failed to run auto-install script:", error);
+      return checkNodeJS();
+    }
+  } else {
+    console.warn("Auto-install script not found, using basic checks");
+    return checkNodeJS();
+  }
 }
 function startBackend() {
   const backendPath = getBackendPath();
   console.log("Starting backend at:", backendPath);
-  const missingDeps = [];
-  if (!checkNodeJS()) {
-    missingDeps.push("Node.js");
-  }
-  if (!checkPython()) {
-    missingDeps.push("Python");
-  }
-  if (missingDeps.length > 0) {
-    console.error("Missing dependencies:", missingDeps.join(", "));
-    showDependencyDialog(missingDeps);
-    return;
-  }
-  if (utils.is.dev) {
-    const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-    backendProcess = child_process.spawn(command, ["start"], {
-      cwd: backendPath,
-      stdio: "inherit",
-      shell: true
-    });
-  } else {
-    const serverPath = path.join(backendPath, "server.js");
-    if (fs.existsSync(serverPath)) {
-      backendProcess = child_process.spawn("node", [serverPath], {
-        cwd: backendPath,
-        stdio: "inherit",
-        shell: true,
-        env: {
-          ...process.env,
-          PYTHON_PATH: getPythonPath() || ""
-        }
-      });
-    } else {
-      console.error("Backend server.js not found at:", serverPath);
+  autoInstallDependencies().catch((error) => {
+    console.error("Failed to auto-install dependencies:", error);
+  }).finally(() => {
+    if (!checkNodeJS()) {
+      console.error("Node.js is required but not found. Please install Node.js from https://nodejs.org/");
+      return;
+    }
+    if (utils.is.dev) {
       const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
       backendProcess = child_process.spawn(command, ["start"], {
         cwd: backendPath,
         stdio: "inherit",
         shell: true
       });
+    } else {
+      const serverPath = path.join(backendPath, "server.js");
+      if (fs.existsSync(serverPath)) {
+        backendProcess = child_process.spawn("node", [serverPath], {
+          cwd: backendPath,
+          stdio: "inherit",
+          shell: true,
+          env: {
+            ...process.env,
+            PYTHON_PATH: getPythonPath() || ""
+          }
+        });
+      } else {
+        console.error("Backend server.js not found at:", serverPath);
+        const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+        backendProcess = child_process.spawn(command, ["start"], {
+          cwd: backendPath,
+          stdio: "inherit",
+          shell: true
+        });
+      }
     }
-  }
-  backendProcess.on("error", (err) => {
-    console.error("Failed to start backend:", err);
-  });
-  backendProcess.on("exit", (code) => {
-    console.log("Backend process exited with code:", code);
+    backendProcess.on("error", (err) => {
+      console.error("Failed to start backend:", err);
+    });
+    backendProcess.on("exit", (code) => {
+      console.log("Backend process exited with code:", code);
+    });
   });
 }
 function stopBackend() {
@@ -142,32 +143,21 @@ function stopBackend() {
     backendProcess = null;
   }
 }
-electron.app.whenReady().then(() => {
+electron.app.whenReady().then(async () => {
   utils.electronApp.setAppUserModelId("com.electron");
-  const missingDeps = [];
-  if (!checkNodeJS()) {
-    missingDeps.push("Node.js");
-  }
-  if (!checkPython()) {
-    missingDeps.push("Python");
-  }
-  if (missingDeps.length === 0) {
+  if (checkNodeJS()) {
     startBackend();
   } else {
+    console.error("Node.js is required but not found. Please install Node.js from https://nodejs.org/");
     electron.dialog.showMessageBox({
-      type: "warning",
-      title: "Missing Dependencies",
-      message: `The following dependencies are missing: ${missingDeps.join(", ")}`,
-      detail: "Please install the missing dependencies and restart the application.\n\nNode.js: https://nodejs.org/\nPython: https://www.python.org/downloads/",
-      buttons: ["Open Download Pages", "OK"]
+      type: "error",
+      title: "Node.js Required",
+      message: "Node.js is required to run this application",
+      detail: "Please install Node.js from https://nodejs.org/ and restart the application.",
+      buttons: ["Open Download Page", "OK"]
     }).then((result) => {
       if (result.response === 0) {
-        if (missingDeps.includes("Node.js")) {
-          electron.shell.openExternal("https://nodejs.org/");
-        }
-        if (missingDeps.includes("Python")) {
-          electron.shell.openExternal("https://www.python.org/downloads/");
-        }
+        electron.shell.openExternal("https://nodejs.org/");
       }
     });
   }

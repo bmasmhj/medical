@@ -11,16 +11,16 @@ console.log('Preparing Python environment...');
 // Check if Python is available
 function checkPython() {
     try {
-        const pythonVersion = execSync('python3 --version', { encoding: 'utf-8' });
+        const pythonVersion = execSync('python3 --version', { encoding: 'utf-8', stdio: 'pipe' });
         console.log('Found Python:', pythonVersion.trim());
         return 'python3';
     } catch (e) {
         try {
-            const pythonVersion = execSync('python --version', { encoding: 'utf-8' });
+            const pythonVersion = execSync('python --version', { encoding: 'utf-8', stdio: 'pipe' });
             console.log('Found Python:', pythonVersion.trim());
             return 'python';
         } catch (e2) {
-            console.warn('Python not found. Please install Python 3.8+ to use Python features.');
+            console.warn('Python not found. Python features will be disabled.');
             return null;
         }
     }
@@ -34,10 +34,14 @@ if (pythonCmd && fs.existsSync(requirementsPath)) {
         console.log('Creating Python virtual environment...');
         try {
             execSync(`${pythonCmd} -m venv "${venvPath}"`, { stdio: 'inherit' });
+            console.log('✓ Virtual environment created');
         } catch (error) {
             console.error('Failed to create virtual environment:', error.message);
-            process.exit(1);
+            console.warn('Continuing without Python virtual environment. Some features may not work.');
+            process.exit(0); // Don't fail the build, just warn
         }
+    } else {
+        console.log('✓ Python virtual environment already exists');
     }
 
     // Determine pip path based on platform
@@ -50,16 +54,21 @@ if (pythonCmd && fs.existsSync(requirementsPath)) {
         console.log('Installing Python dependencies...');
         try {
             execSync(`"${pipPath}" install -r "${requirementsPath}"`, { stdio: 'inherit' });
-            console.log('Python dependencies installed successfully.');
+            console.log('✓ Python dependencies installed successfully.');
         } catch (error) {
             console.error('Failed to install Python dependencies:', error.message);
             console.warn('Continuing without Python dependencies. Some features may not work.');
+            // Don't exit with error, just continue
         }
     } else {
         console.warn('Virtual environment pip not found. Skipping Python dependency installation.');
     }
 } else {
-    console.warn('Python or requirements.txt not found. Skipping Python setup.');
+    if (!pythonCmd) {
+        console.warn('Python not found. Skipping Python setup.');
+    } else {
+        console.warn('requirements.txt not found. Skipping Python setup.');
+    }
 }
 
 console.log('Python environment preparation complete.');

@@ -14,7 +14,8 @@
         "dist:mac": "npm run prebuild && npm run build:backend && npm run build && electron-builder --mac",
         "dist:linux": "npm run prebuild && npm run build:backend && npm run build && electron-builder --linux",
         "prepare:python": "node scripts/prepare-python.js",
-        "postinstall": "npm run prepare:python"
+        "auto-install": "node scripts/auto-install.js",
+        "postinstall": "npm run auto-install"
     },
     "dependencies": {
         "@electron-toolkit/preload": "^3.0.0",

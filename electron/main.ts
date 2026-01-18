@@ -107,79 +107,87 @@ function checkPython(): boolean {
 }
 
 /**
- * Show dependency check dialog
+ * Auto-install dependencies including Node.js and Python
  */
-function showDependencyDialog(missing: string[]) {
-    const dialog = require('electron').dialog;
-    dialog.showMessageBox({
-        type: 'warning',
-        title: 'Missing Dependencies',
-        message: `The following dependencies are missing: ${missing.join(', ')}`,
-        detail: 'Please install the missing dependencies and restart the application.\n\n' +
-                'Node.js: https://nodejs.org/\n' +
-                'Python: https://www.python.org/downloads/',
-        buttons: ['OK']
-    });
+async function autoInstallDependencies() {
+    const path = require('path');
+    const fs = require('fs');
+    
+    // Use the enhanced auto-install script
+    const autoInstallScript = path.join(__dirname, '../../scripts/auto-install.js');
+    
+    if (fs.existsSync(autoInstallScript)) {
+        try {
+            const { autoInstall } = require(autoInstallScript);
+            const result = await autoInstall();
+            return result.success;
+        } catch (error) {
+            console.error('Failed to run auto-install script:', error);
+            // Fallback to basic checks
+            return checkNodeJS();
+        }
+    } else {
+        // Fallback if script doesn't exist
+        console.warn('Auto-install script not found, using basic checks');
+        return checkNodeJS();
+    }
 }
 
 function startBackend() {
     const backendPath = getBackendPath();
     console.log('Starting backend at:', backendPath);
 
-    // Check dependencies
-    const missingDeps: string[] = [];
-    if (!checkNodeJS()) {
-        missingDeps.push('Node.js');
-    }
-    if (!checkPython()) {
-        missingDeps.push('Python');
-    }
+    // Auto-install dependencies first, then start backend
+    autoInstallDependencies().catch((error) => {
+        console.error('Failed to auto-install dependencies:', error);
+        // Continue anyway - try to start backend
+    }).finally(() => {
+        // Check if Node.js is available (required for backend)
+        if (!checkNodeJS()) {
+            console.error('Node.js is required but not found. Please install Node.js from https://nodejs.org/');
+            return;
+        }
 
-    if (missingDeps.length > 0) {
-        console.error('Missing dependencies:', missingDeps.join(', '));
-        showDependencyDialog(missingDeps);
-        return;
-    }
-
-    // In dev, use tsx/ts-node. In prod, use compiled JS with node
-    if (is.dev) {
-        const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-        backendProcess = spawn(command, ['start'], {
-            cwd: backendPath,
-            stdio: 'inherit',
-            shell: true
-        });
-    } else {
-        // In production, run the compiled server.js directly
-        const serverPath = joinPath(backendPath, 'server.js');
-        if (existsSync(serverPath)) {
-            backendProcess = spawn('node', [serverPath], {
-                cwd: backendPath,
-                stdio: 'inherit',
-                shell: true,
-                env: {
-                    ...process.env,
-                    PYTHON_PATH: getPythonPath() || ''
-                }
-            });
-        } else {
-            console.error('Backend server.js not found at:', serverPath);
-            // Fallback to ts-node if available
+        // In dev, use tsx/ts-node. In prod, use compiled JS with node
+        if (is.dev) {
             const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
             backendProcess = spawn(command, ['start'], {
                 cwd: backendPath,
                 stdio: 'inherit',
                 shell: true
             });
+        } else {
+            // In production, run the compiled server.js directly
+            const serverPath = joinPath(backendPath, 'server.js');
+            if (existsSync(serverPath)) {
+                backendProcess = spawn('node', [serverPath], {
+                    cwd: backendPath,
+                    stdio: 'inherit',
+                    shell: true,
+                    env: {
+                        ...process.env,
+                        PYTHON_PATH: getPythonPath() || ''
+                    }
+                });
+            } else {
+                console.error('Backend server.js not found at:', serverPath);
+                // Fallback to ts-node if available
+                const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+                backendProcess = spawn(command, ['start'], {
+                    cwd: backendPath,
+                    stdio: 'inherit',
+                    shell: true
+                });
+            }
         }
-    }
 
-    backendProcess.on('error', (err) => {
-        console.error('Failed to start backend:', err);
-    });
+        backendProcess.on('error', (err) => {
+            console.error('Failed to start backend:', err);
+        });
 
-    backendProcess.on('exit', (code) => {
-        console.log('Backend process exited with code:', code);
+        backendProcess.on('exit', (code) => {
+            console.log('Backend process exited with code:', code);
+        });
     });
 }
 
@@ -193,38 +201,25 @@ function stopBackend() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     // Set app user model id for windows
     electronApp.setAppUserModelId('com.electron')
 
-    // Check dependencies before starting backend
-    const missingDeps: string[] = [];
-    if (!checkNodeJS()) {
-        missingDeps.push('Node.js');
-    }
-    if (!checkPython()) {
-        missingDeps.push('Python');
-    }
-
-    if (missingDeps.length === 0) {
+    // Auto-install dependencies and start backend
+    // Only Node.js is required - Python is optional
+    if (checkNodeJS()) {
         startBackend();
     } else {
+        console.error('Node.js is required but not found. Please install Node.js from https://nodejs.org/');
         dialog.showMessageBox({
-            type: 'warning',
-            title: 'Missing Dependencies',
-            message: `The following dependencies are missing: ${missingDeps.join(', ')}`,
-            detail: 'Please install the missing dependencies and restart the application.\n\n' +
-                    'Node.js: https://nodejs.org/\n' +
-                    'Python: https://www.python.org/downloads/',
-            buttons: ['Open Download Pages', 'OK']
+            type: 'error',
+            title: 'Node.js Required',
+            message: 'Node.js is required to run this application',
+            detail: 'Please install Node.js from https://nodejs.org/ and restart the application.',
+            buttons: ['Open Download Page', 'OK']
         }).then((result: any) => {
             if (result.response === 0) {
-                if (missingDeps.includes('Node.js')) {
-                    shell.openExternal('https://nodejs.org/');
-                }
-                if (missingDeps.includes('Python')) {
-                    shell.openExternal('https://www.python.org/downloads/');
-                }
+                shell.openExternal('https://nodejs.org/');
             }
         });
     }
