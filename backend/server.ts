@@ -261,25 +261,6 @@ httpServer.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
 });
 
-// axios('https://chat.googleapis.com/v1/spaces/AAQA_MEeFKI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=jIoApsakQBvbFq-NvMbDVKZ_8msiJIyr2Z35FS5BvxQ', {
-//         method: 'POST',
-//         body: JSON.stringify({
-//           "text": `*${logEntry.type.toUpperCase()} Logged*\n*Name:* ${logEntry.name}\n*File:* ${logEntry.file}\n*Title:* ${logEntry.title}\n*Description:*\n${LogService.serializeDescription(logEntry.description)}`
-//         }),
-//         headers: {
-//           'Content-Type': 'application/json; charset=UTF-8',
-//         },
-//       }).catch(err => {
-//         console.error('Failed to log error to API:', err);
-//       });
-
-axios.post('https://chat.googleapis.com/v1/spaces/AAQA_MEeFKI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=jIoApsakQBvbFq-NvMbDVKZ_8msiJIyr2Z35FS5BvxQ', {
-    "text": `*Backend Started*\nThe backend server has started successfully. ${PORT}`
-}).catch(err => {
-    console.error('Failed to log start to API:', err);
-});
-// puppeter
-// 
 
 
 // fetchCategoryData('Medicines');
