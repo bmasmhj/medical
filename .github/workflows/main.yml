@@ -1,46 +1,39 @@
-
 name: Release Build
 on:
     push:
         branches:
             - release
-		# Remove 'branches' property if not allowed, otherwise fix indentation
-		# - release
-		# If you want to trigger only on 'release' branch, uncomment the next two lines:
-		# branches:
-		#   - release
-
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Use Node.js 24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: latest
-      - name: Install dependencies
-        run: pnpm install
-      - name: Build project
-        env : 
-          NODE_ENV: production
-          VIBER_RECEIVER_ID : ${{ secrets.VIBER_RECEIVER_ID }}
-          VIBER_AUTH_TOKEN : ${{ secrets.VIBER_AUTH_TOKEN }}
-        run: pnpm build
+    build-and-release:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Use Node.js 24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+            - name: Install pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: latest
+            - name: Install dependencies
+              run: pnpm install
+            - name: Build project
+              env:
+                  NODE_ENV: production
+                  VIBER_RECEIVER_ID: ${{ secrets.VIBER_RECEIVER_ID }}
+                  VIBER_AUTH_TOKEN: ${{ secrets.VIBER_AUTH_TOKEN }}
+              run: pnpm build
 
-      - name: Build Windows executable
-        env : 
-          NODE_ENV: production
-          VIBER_RECEIVER_ID : ${{ secrets.VIBER_RECEIVER_ID }}
-          VIBER_AUTH_TOKEN : ${{ secrets.VIBER_AUTH_TOKEN }}
-        run: pnpm dist:win
+            - name: Build Windows executable
+              env:
+                  NODE_ENV: production
+                  VIBER_RECEIVER_ID: ${{ secrets.VIBER_RECEIVER_ID }}
+                  VIBER_AUTH_TOKEN: ${{ secrets.VIBER_AUTH_TOKEN }}
+              run: pnpm dist:win
 
-      - name: Upload exe to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.exe
+            - name: Upload exe to release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: dist/*.exe
