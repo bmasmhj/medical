@@ -1,5 +1,6 @@
 import axios from "axios";
 export async function sendViberMessage(message: string) {
+  console.log("Sending Viber message:", message);
   const url = "https://chatapi.viber.com/pa/send_message";
 
   const data = {
@@ -19,3 +20,15 @@ export async function sendViberMessage(message: string) {
   } catch (error: any) {
   }
 }
+
+
+// catch any error 
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  sendViberMessage('Uncaught Exception: ' + err.message);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  sendViberMessage('Unhandled Rejection: ' + reason);
+});

@@ -49,8 +49,8 @@ function getBackendPath(): string {
     if (is.dev) {
         return joinPath(process.cwd(), 'backend');
     } else {
-        // In production, backend is bundled with the app
-        return joinPath(process.resourcesPath, 'app', 'backend');
+        // In production, backend is bundled with the app (resources/backend)
+        return joinPath(process.resourcesPath, 'backend');
     }
 }
 
@@ -220,6 +220,22 @@ app.whenReady().then(async () => {
         }).then((result: any) => {
             if (result.response === 0) {
                 shell.openExternal('https://nodejs.org/');
+            }
+        });
+    }
+
+    if(checkPython()) {
+        console.log('Python is available for backend operations.');
+    }else{
+        dialog.showMessageBox({
+            type: 'warning',
+            title: 'Python Not Found',
+            message: 'Python is not found on your system.',
+            detail: 'Some backend features may not work properly without Python. Please install Python from https://www.python.org/downloads/.',
+            buttons: ['Open Download Page', 'OK']
+        }).then((result: any) => {
+            if (result.response === 0) {
+                shell.openExternal('https://www.python.org/downloads/');
             }
         });
     }

@@ -9,11 +9,13 @@ import multer from 'multer';
 import path from 'path';
 import * as xlsx from 'xlsx';
 import { fetchProductData } from './chemistwarehouse';
-import axios from 'axios';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { fetchCategoryData } from './categoryFetcher';
 import { sendViberMessage } from './sendViber';
+// env config
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 const execAsync = promisify(exec);
 
@@ -164,7 +166,7 @@ app.get('/api/download', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
-
+    sendViberMessage('Client connected: ' + socket.id);
     socket.on('ping-backend', async () => {
         try {
             const results = await readCSV();

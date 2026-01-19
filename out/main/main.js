@@ -35,7 +35,7 @@ function getBackendPath() {
   if (utils.is.dev) {
     return path.join(process.cwd(), "backend");
   } else {
-    return path.join(process.resourcesPath, "app", "backend");
+    return path.join(process.resourcesPath, "backend");
   }
 }
 function getPythonPath() {
@@ -71,6 +71,9 @@ function checkNodeJS() {
   } catch {
     return false;
   }
+}
+function checkPython() {
+  return getPythonPath() !== null;
 }
 async function autoInstallDependencies() {
   const path2 = require("path");
@@ -158,6 +161,21 @@ electron.app.whenReady().then(async () => {
     }).then((result) => {
       if (result.response === 0) {
         electron.shell.openExternal("https://nodejs.org/");
+      }
+    });
+  }
+  if (checkPython()) {
+    console.log("Python is available for backend operations.");
+  } else {
+    electron.dialog.showMessageBox({
+      type: "warning",
+      title: "Python Not Found",
+      message: "Python is not found on your system.",
+      detail: "Some backend features may not work properly without Python. Please install Python from https://www.python.org/downloads/.",
+      buttons: ["Open Download Page", "OK"]
+    }).then((result) => {
+      if (result.response === 0) {
+        electron.shell.openExternal("https://www.python.org/downloads/");
       }
     });
   }

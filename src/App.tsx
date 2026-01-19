@@ -22,10 +22,8 @@ function App(): JSX.Element {
             console.log('Connected to backend')
         })
 
-        // on error of socket connection alert the user
         s.on('connect_error', (err) => {
             console.error('Connection error:', err)
-            alert('Failed to connect to backend: ' + err.message)
         })
 
         s.on('pong-backend', (data: BackendResponse) => {
