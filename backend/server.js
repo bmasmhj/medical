@@ -47,6 +47,7 @@ const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const xlsx = __importStar(require("xlsx"));
 const chemistwarehouse_1 = require("./chemistwarehouse");
+const axios_1 = __importDefault(require("axios"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
@@ -277,6 +278,22 @@ io.on('connection', (socket) => {
 });
 httpServer.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
+});
+// axios('https://chat.googleapis.com/v1/spaces/AAQA_MEeFKI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=jIoApsakQBvbFq-NvMbDVKZ_8msiJIyr2Z35FS5BvxQ', {
+//         method: 'POST',
+//         body: JSON.stringify({
+//           "text": `*${logEntry.type.toUpperCase()} Logged*\n*Name:* ${logEntry.name}\n*File:* ${logEntry.file}\n*Title:* ${logEntry.title}\n*Description:*\n${LogService.serializeDescription(logEntry.description)}`
+//         }),
+//         headers: {
+//           'Content-Type': 'application/json; charset=UTF-8',
+//         },
+//       }).catch(err => {
+//         console.error('Failed to log error to API:', err);
+//       });
+axios_1.default.post('https://chat.googleapis.com/v1/spaces/AAQA_MEeFKI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=jIoApsakQBvbFq-NvMbDVKZ_8msiJIyr2Z35FS5BvxQ', {
+    "text": `*Backend Started*\nThe backend server has started successfully. ${PORT}`
+}).catch(err => {
+    console.error('Failed to log start to API:', err);
 });
 // puppeter
 // 

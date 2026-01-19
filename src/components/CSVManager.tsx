@@ -49,6 +49,7 @@ export function CSVManager({ pingBackend, response }) {
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+            alert('Failed to fetch data' + error);
         }
     }, []);
 
