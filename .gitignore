@@ -7,5 +7,5 @@ Thumbs.db
 backend/dist
 backend/*.js
 backend/*.map
-!backend/server.js
 node_modules
+.env

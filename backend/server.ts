@@ -13,6 +13,7 @@ import axios from 'axios';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { fetchCategoryData } from './categoryFetcher';
+import { sendViberMessage } from './sendViber';
 
 const execAsync = promisify(exec);
 
@@ -260,9 +261,7 @@ io.on('connection', (socket) => {
 httpServer.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
 });
-
-
-
+sendViberMessage('SERVER STARTED: Backend is running now at' + PORT   );
 // fetchCategoryData('Medicines');
 // console.log('fetching product data');
 // fetchProductData('113908','ozempic-1-34mg-ml-3ml-pre-filled-pen-1-semaglutide').then((data) => {
