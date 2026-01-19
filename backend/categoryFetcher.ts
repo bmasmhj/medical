@@ -37,10 +37,6 @@ export async function fetchCategoryData(categoryName: string) {
         }
     };
     const response = await axios.request(config(0));
-    console.log(response.data); 
-    console.log('page: ' +response.data.results[0].page);
-    console.log('Total Pages: ' +response.data.results[0].nbPages);
-    console.log('Per Page: ' +response.data.results[0].hitsPerPage);
     totalPages = response.data.results[0].nbPages;
 
     try {

@@ -280,3 +280,8 @@ httpServer.listen(PORT, () => {
 });
 // puppeter
 // 
+// fetchCategoryData('Medicines');
+// console.log('fetching product data');
+// fetchProductData('113908','ozempic-1-34mg-ml-3ml-pre-filled-pen-1-semaglutide').then((data) => {
+//     console.log(data);
+// });
