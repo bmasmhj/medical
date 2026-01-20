@@ -30,10 +30,6 @@ IF NOT EXIST medical (
 
 cd medical
 
-:: change to dist branch
-git checkout dist
-git pull origin dist
-
 :: install pnpm if missing
 pnpm -v >nul 2>&1
 IF ERRORLEVEL 1 (
