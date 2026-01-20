@@ -53,15 +53,17 @@ def productdetail(link):
         # Click eligibility dropdown - use .first() to select the combobox button (not the listbox menu)
         try:
             # page.get by class
-            page.locator(
+            locator = page.locator(
                 ".rounded-b-shape-button-input.ring-1.px-space-400.text-colour-body-light."
                 "rounded-t-shape-button-input.flex.h-\\[60px\\].items-center."
                 "justify-between.border-0.ring-inset.ring-offset-0."
                 "ring-neutral-300.bg-white"
-            ).click()
+            )
 
-            
-            # Get updated content after clicking
+            locator.wait_for(state="visible", timeout=2000)
+            locator.click()
+            #
+            #  Get updated content after clicking
             content = page.content()
             soup = BeautifulSoup(content, "html.parser")
             ul_elibility = soup.find("ul", class_="h-max max-h-[316px] overflow-y-auto bg-white p-0")
@@ -85,7 +87,17 @@ def productdetail(link):
                     rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
                     print(rrp)
         except Exception as e:
-            print(f"Error clicking eligibility dropdown: {e}")
+            if desc_div:
+                rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
+                print(rrp)
+                browser.close()
+                return
+            else :
+                print("0")
+                browser.close()
+                return
+        browser.close()
+
        
 
 def main():
