@@ -136,6 +136,19 @@ call pip install -r requirements.txt || (
 )
 
 :: ===============================
+:: INSTALL PLAYWRIGHT BROWSERS
+:: ===============================
+
+echo 🌐 Installing Playwright browsers...
+call python -m playwright install || (
+  echo ❌ Failed to install Playwright browsers
+  pause
+  popd
+  exit /b
+)
+
+
+:: ===============================
 :: START
 :: ===============================
 echo.
