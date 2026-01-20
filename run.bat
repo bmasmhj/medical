@@ -158,3 +158,9 @@ call pnpm start
 
 popd
 pause
+
+:: OPENING LOCALHOST:5175
+
+start http://localhost:5175
+
+
