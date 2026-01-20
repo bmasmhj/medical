@@ -78,6 +78,18 @@ IF NOT EXIST package.json (
 )
 
 :: ===============================
+:: PULL LATEST CHANGES
+:: ===============================
+
+echo 📦 Pulling latest changes...
+git pull origin main || (
+  echo ❌ Git pull failed
+  pause
+  popd
+  exit /b
+)
+
+:: ===============================
 :: PNPM
 :: ===============================
 where pnpm >nul 2>&1 || (
@@ -147,6 +159,11 @@ call python -m playwright install || (
   exit /b
 )
 
+:: ==============================
+:: OPEN BROWSER
+:: ==============================
+echo 🌐 Opening browser...
+start http://localhost:5175
 
 :: ===============================
 :: START
@@ -156,11 +173,6 @@ echo 🚀 Starting server...
 echo.
 call pnpm start
 
+
 popd
 pause
-
-:: OPENING LOCALHOST:5175
-
-start http://localhost:5175
-
-
