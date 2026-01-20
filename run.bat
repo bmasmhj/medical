@@ -97,6 +97,45 @@ call pnpm install || (
 )
 
 :: ===============================
+:: VERYFY PYTHON VENV
+:: ===============================
+
+IF NOT EXIST .venv (
+  echo 🐍 Creating Python virtual environment...
+  python -m venv .venv || (
+    echo ❌ Failed to create Python virtual environment
+    pause
+    popd
+    exit /b
+  )
+)
+
+:: ===============================
+:: ACTIVATE VENV
+:: ===============================
+
+echo 🐍 Activating Python virtual environment...
+call .venv\Scripts\activate.bat
+IF ERRORLEVEL 1 (
+  echo ❌ Failed to activate Python virtual environment
+  pause
+  popd
+  exit /b
+)
+
+:: ===============================
+:: INSTALL PYTHON REQS
+:: ===============================
+
+echo 🐍 Installing Python requirements...
+call pip install -r requirements.txt || (
+  echo ❌ Failed to install Python requirements
+  pause
+  popd
+  exit /b
+)
+
+:: ===============================
 :: START
 :: ===============================
 echo.
