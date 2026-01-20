@@ -1,69 +1,108 @@
 @echo off
-title Medical Server Setup
-echo ===============================
-echo   Medical Server Installer
-echo ===============================
+setlocal
+cd /d "%~dp0"
+title Medical Server One-Click Setup
 
-:: check node
-node -v >nul 2>&1
-IF ERRORLEVEL 1 (
-  echo Node.js not found!
-  echo Please install Node.js LTS first.
+echo ===============================
+echo   Medical Server One-Click
+echo ===============================
+echo.
+
+echo 📍 Script started in:
+echo %CD%
+echo.
+
+:: ===============================
+:: CHECK NODE
+:: ===============================
+where node >nul 2>&1 || (
+  echo ❌ Node.js not installed
   pause
   exit /b
 )
 
-:: check git
-git --version >nul 2>&1
-IF ERRORLEVEL 1 (
-  echo Git not found!
-  echo Please install Git first.
+:: ===============================
+:: CHECK PYTHON
+:: ===============================
+where python >nul 2>&1 || (
+  echo ❌ Python not installed
   pause
   exit /b
 )
 
-:: clone repo if not exists
+:: ===============================
+:: CHECK GIT
+:: ===============================
+where git >nul 2>&1 || (
+  echo ❌ Git not installed
+  pause
+  exit /b
+)
+
+:: ===============================
+:: CLONE REPO
+:: ===============================
 IF NOT EXIST medical (
-  echo Cloning repository...
+  echo 📦 Cloning repository...
   git clone https://github.com/bmasmhj/medical.git
+  IF ERRORLEVEL 1 (
+    echo ❌ Git clone failed
+    pause
+    exit /b
+  )
 )
 
-cd medical
-
-:: install pnpm if missing
-pnpm -v >nul 2>&1
-IF ERRORLEVEL 1 (
-  echo Installing pnpm...
-  npm install -g pnpm
-)
-
-:: install dependencies
-echo Installing dependencies...
-pnpm install
-
-
-:: install python venv if missing
-python -m venv --help >nul 2>&1
-IF ERRORLEVEL 1 (
-  echo Python venv module not found!
-  echo Please install Python 3.6+ with venv support first.
+:: ===============================
+:: ENTER PROJECT (HARD LOCK)
+:: ===============================
+pushd medical || (
+  echo ❌ Failed to enter medical directory
   pause
   exit /b
 )
 
-:: check if venv exists
-IF NOT EXIST venv (
-  echo Creating Python virtual environment...
-  python -m venv venv
+echo 📍 Now running in:
+echo %CD%
+echo.
+
+:: ===============================
+:: VERIFY package.json
+:: ===============================
+IF NOT EXIST package.json (
+  echo ❌ package.json NOT found in:
+  echo %CD%
+  dir
+  pause
+  popd
+  exit /b
 )
 
-:: install python dependencies
-echo Installing Python dependencies...
-venv\Scripts\activate
-pip install -r requirements.txt
+:: ===============================
+:: PNPM
+:: ===============================
+where pnpm >nul 2>&1 || (
+  echo 📦 Installing pnpm...
+  call npm install -g pnpm
+)
 
-:: run server
-echo Starting server...
-pnpm dev
+:: ===============================
+:: INSTALL
+:: ===============================
+echo 📦 Installing dependencies...
+call pnpm install || (
+  echo ❌ pnpm install failed
+  pause
+  popd
+  exit /b
+)
 
+:: ===============================
+:: START
+:: ===============================
+echo.
+echo 🚀 Starting server...
+echo.
+call pnpm start
+
+popd
 pause
