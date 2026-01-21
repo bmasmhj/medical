@@ -148,7 +148,6 @@ app.get('/api/download', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
     socket.on('ping-backend', async () => {
         try {
             const results = await readCSV();
@@ -252,7 +251,7 @@ httpServer.listen(PORT, () => {
 });
 
 
-export async function fetchProductData(code: string, slug: string) {
+async function fetchProductData(code: string, slug: string) {
 
   let urlParsed = encodeURIComponent(slug);
 
@@ -291,7 +290,6 @@ export async function fetchProductData(code: string, slug: string) {
     for (const result of response.data.results) {
       const product = result.hits.find((p: any) => p.slug.en === combinedSug);
       if (product) {
-        console.log(product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount']);
         let newPrice = 0;
         if(product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount']){
           newPrice = product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount'] / 100;
