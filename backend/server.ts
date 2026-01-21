@@ -291,7 +291,7 @@ async function fetchProductData(code: string, slug: string) {
       const product = result.hits.find((p: any) => p.slug.en === combinedSug);
       if (product) {
         let newPrice = 0;
-        if(product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount']){
+        if (product['prices']['AUD']['priceValues'][0]['customFields']['private-price'] && product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount']) {
           newPrice = product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount'] / 100;
         }else{
           newPrice = product.calculatedPrice / 100;
