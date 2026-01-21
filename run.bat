@@ -78,6 +78,18 @@ IF NOT EXIST package.json (
 )
 
 :: ===============================
+:: GIT RESET HARD
+:: ===============================
+echo 📦 Resetting local changes...
+git reset --hard
+IF ERRORLEVEL 1 (
+  echo ❌ Git reset failed
+  pause
+  popd
+  exit /b
+)
+
+:: ===============================
 :: PULL LATEST CHANGES
 :: ===============================
 
