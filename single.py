@@ -38,14 +38,14 @@ def productdetail(link):
         
         # Click cookie button first
         try:
-            cookie_button = page.get_by_role("button", name="Accept All Cookies")
-            cookie_cancel  = page.get_by_role("button", name="Close")
-            if cookie_button:
-                cookie_button.click(timeout=2000)
-            elif cookie_cancel:
-                cookie_cancel.click(timeout=2000)
-            
-            time.sleep(1)  # Wait for cookie dialog to close
+            try:
+                page.get_by_role("button", name="Accept All Cookies").click(timeout=0)
+            except:
+                try:
+                    page.get_by_role("button", name="Close").click(timeout=0)
+                except:
+                    pass
+
         except Exception as e:
             print(f"Cookie button not found or already accepted: {e}")
         

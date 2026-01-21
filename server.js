@@ -189,7 +189,7 @@ io.on('connection', (socket) => {
                         if (doneItem) {
                             newcsv.push({
                                 ...item,
-                                rrp: doneItem['rrp']
+                                private_price : doneItem['private_price']
                             });
                         }
                         continue;
@@ -233,11 +233,11 @@ io.on('connection', (socket) => {
                     }
                     newcsv.push({
                         ...item,
-                        rrp: price
+                        private_price : price
                     });
                     uniqueDoneItems.push({
                         ...item,
-                        rrp: price
+                        private_price : price
                     });
                 }
                 else {
