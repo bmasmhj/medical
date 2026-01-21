@@ -15,7 +15,6 @@
         "cors": "^2.8.5",
         "csv-parse": "^6.1.0",
         "csv-stringify": "^6.6.0",
-        "dotenv": "^17.2.3",
         "express": "^4.18.2",
         "multer": "^2.0.2",
         "puppeteer": "^24.35.0",
