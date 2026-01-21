@@ -11,11 +11,6 @@ import * as xlsx from 'xlsx';
 import { fetchProductData } from './chemistwarehouse';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { sendViberMessage } from './sendViber';
-// env config
-import dotenv from 'dotenv';
-dotenv.config();
-
 
 const execAsync = promisify(exec);
 
@@ -83,67 +78,52 @@ app.get('/api/data', async (req, res) => {
 // ... (existing helper functions)
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) throw new Error('No file uploaded');
+  try {
+    if (!req.file) throw new Error('No file uploaded');
 
-        const existingData = await readCSV();
-        const existingMap = new Map(existingData.map(item => [item['li item id'], item]));
+    const isExcel =
+      req.file.originalname.endsWith('.xlsx') ||
+      req.file.originalname.endsWith('.xls');
 
-        const isExcel = req.file.originalname.endsWith('.xlsx') || req.file.originalname.endsWith('.xls');
+    let finalData: any[] = [];
 
-        if (isExcel) {
-            const workbook = xlsx.readFile(req.file.path);
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const jsonData = xlsx.utils.sheet_to_json(sheet);
+    if (isExcel) {
+      // ===== EXCEL → JSON =====
+      const workbook = xlsx.readFile(req.file.path);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
 
-            jsonData.forEach((row: any) => {
-                const id = row['li item id'];
-                if (id) {
-                    // Start of workaround: ensure all keys are strings if needed, matching CSV structure
-                    // But usually, JSON is fine. We just merge.
-                    if (existingMap.has(id)) {
-                        const existing = existingMap.get(id);
-                        existingMap.set(id, { ...existing, ...row });
-                    } else {
-                        existingMap.set(id, row);
-                    }
-                }
-            });
-        } else {
-            // Parse uploaded CSV file
-            await new Promise<void>((resolve, reject) => {
-                fs.createReadStream(req.file!.path)
-                    .pipe(parse({ columns: true, skip_empty_lines: true, trim: true }))
-                    .on('data', (row: any) => {
-                        const id = row['li item id'];
-                        if (id && existingMap.has(id)) {
-                            // Update existing (merge fields)
-                            const existing = existingMap.get(id);
-                            existingMap.set(id, { ...existing, ...row });
-                        } else {
-                            // Add new
-                            existingMap.set(id, row);
-                        }
-                    })
-                    .on('end', () => resolve())
-                    .on('error', reject);
-            });
-        }
+      finalData = xlsx.utils.sheet_to_json(sheet, {
+        defval: '', // keep empty cells
+      });
+    } else {
+      // ===== CSV → JSON =====
+      finalData = await new Promise<any[]>((resolve, reject) => {
+        const rows: any[] = [];
 
-        // Convert map back to array
-        const finalData = Array.from(existingMap.values());
-
-        await writeCSV(finalData);
-
-        // Cleanup uploaded file
-        fs.unlinkSync(req.file.path);
-
-        res.json({ message: 'Merged successfully', count: finalData.length });
-    } catch (err) {
-        res.status(500).json({ error: (err as Error).message });
+        fs.createReadStream(req.file!.path)
+          .pipe(parse({ columns: true, skip_empty_lines: true, trim: true }))
+          .on('data', (row) => rows.push(row))
+          .on('end', () => resolve(rows))
+          .on('error', reject);
+      });
     }
+
+    // 🔥 DIRECT REPLACE
+    await writeCSV(finalData);
+
+    // cleanup
+    fs.unlinkSync(req.file.path);
+
+    res.json({
+      message: 'CSV replaced successfully',
+      count: finalData.length,
+    });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
 });
+
 
 app.post('/api/save', express.json({ limit: '50mb' }), async (req, res) => {
     try {
@@ -166,7 +146,6 @@ app.get('/api/download', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
-    sendViberMessage('Client connected: ' + socket.id);
     socket.on('ping-backend', async () => {
         try {
             const results = await readCSV();
@@ -254,6 +233,7 @@ io.on('connection', (socket) => {
             }
 
             await writeCSV(newcsv);
+            socket.emit('completed_scraping');
         } catch (err) {
             console.error(err);
         }
@@ -263,9 +243,3 @@ io.on('connection', (socket) => {
 httpServer.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
 });
-sendViberMessage('SERVER STARTED: Backend is running now at' + PORT   );
-// fetchCategoryData('Medicines');
-// console.log('fetching product data');
-// fetchProductData('113908','ozempic-1-34mg-ml-3ml-pre-filled-pen-1-semaglutide').then((data) => {
-//     console.log(data);
-// });

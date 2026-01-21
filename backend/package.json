@@ -4,7 +4,7 @@
     "private": true,
     "main": "dist/server.js",
     "scripts": {
-        "start": "node dist/server.js",
+        "start": "ts-node server.ts",
         "build": "tsc --outDir dist",
         "build:watch": "tsc --outDir dist --watch"
     },
@@ -15,7 +15,6 @@
         "cors": "^2.8.5",
         "csv-parse": "^6.1.0",
         "csv-stringify": "^6.6.0",
-        "dotenv": "^17.2.3",
         "express": "^4.18.2",
         "multer": "^2.0.2",
         "puppeteer": "^24.35.0",

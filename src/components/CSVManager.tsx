@@ -12,6 +12,7 @@ import {
     TextEditorModule
 } from 'ag-grid-community';
 import { themeQuartz } from 'ag-grid-community';
+import Swal from 'sweetalert2';
 
 ModuleRegistry.registerModules([
     ClientSideRowModelModule,
@@ -49,7 +50,6 @@ export function CSVManager({ pingBackend, response }) {
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            alert('Failed to fetch data' + error);
         }
     }, []);
 
@@ -82,9 +82,25 @@ export function CSVManager({ pingBackend, response }) {
             await fetch(`${API_URL}/upload`, {
                 method: 'POST',
                 body: formData
+            }).then(() => {
+                Swal.fire({
+                    title: 'Upload Successful',
+                    text: 'The file has been uploaded successfully.',
+                    icon: 'success',
+                    confirmButtonText: "Great",
+                    confirmButtonColor: "#3085d6",
+                });
+                fetchData();
             });
         } catch (error) {
-            alert('Failed to upload file');
+            Swal.fire({
+                title: 'Upload Failed',
+                text: 'There was an error uploading the file.',
+                icon: 'error',
+                confirmButtonText: "OK",
+                confirmButtonColor: "#d33",
+            });
+            console.error('Error uploading file:', error);
         } finally {
             setUploading(false);
             // Reset input

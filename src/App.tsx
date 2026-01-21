@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import io, { Socket } from 'socket.io-client'
 import { CSVManager } from './components/CSVManager'
+import Swal from 'sweetalert2'
 
 interface BackendResponse {
     item: string
@@ -24,6 +25,18 @@ function App(): JSX.Element {
 
         s.on('connect_error', (err) => {
             console.error('Connection error:', err)
+        })
+
+        s.on('completed_scraping', () => {
+            Swal.fire({
+                title: 'Processing Completed',
+                text: 'Updating price data is completed',
+                icon: 'success',
+                confirmButtonText: "Done",
+                confirmButtonColor: "#3085d6",
+            })
+            setResponse(null)
+            setTopFiveResponses([])
         })
 
         s.on('pong-backend', (data: BackendResponse) => {
@@ -50,7 +63,7 @@ function App(): JSX.Element {
                     <CSVManager pingBackend={pingBackend} response={response} />
                 </div>
             </div>
-            <div className="overflow-hidden rounded-lg bg-slate-900 shadow-2xl ring-1 ring-white/10 w-[400px]">
+            <div className="overflow-hidden rounded-lg bg-slate-900 shadow-2xl ring-1 ring-white/10 min-w-[400px] ">
                 <div className="flex items-center bg-slate-800/50 px-4 py-2">
                     <div className="ml-4 text-xs font-medium text-slate-400">{response?.item}</div>
                 </div>

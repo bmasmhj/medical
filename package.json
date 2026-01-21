@@ -27,7 +27,8 @@
         "electron-updater": "^6.1.7",
         "postcss-preset-mantine": "^1.18.0",
         "postcss-simple-vars": "^7.0.1",
-        "socket.io-client": "^4.7.4"
+        "socket.io-client": "^4.7.4",
+        "sweetalert2": "^11.26.17"
     },
     "devDependencies": {
         "@electron-toolkit/tsconfig": "^1.0.1",
