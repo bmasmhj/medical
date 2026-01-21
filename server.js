@@ -48,10 +48,7 @@ const path_1 = __importDefault(require("path"));
 const xlsx = __importStar(require("xlsx"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
-// env config
-const dotenv_1 = __importDefault(require("dotenv"));
 const axios_1 = __importDefault(require("axios"));
-dotenv_1.default.config();
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -119,56 +116,37 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file)
             throw new Error('No file uploaded');
-        const existingData = await readCSV();
-        const existingMap = new Map(existingData.map(item => [item['li item id'], item]));
-        const isExcel = req.file.originalname.endsWith('.xlsx') || req.file.originalname.endsWith('.xls');
+        const isExcel = req.file.originalname.endsWith('.xlsx') ||
+            req.file.originalname.endsWith('.xls');
+        let finalData = [];
         if (isExcel) {
+            // ===== EXCEL → JSON =====
             const workbook = xlsx.readFile(req.file.path);
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
-            const jsonData = xlsx.utils.sheet_to_json(sheet);
-            jsonData.forEach((row) => {
-                const id = row['li item id'];
-                if (id) {
-                    // Start of workaround: ensure all keys are strings if needed, matching CSV structure
-                    // But usually, JSON is fine. We just merge.
-                    if (existingMap.has(id)) {
-                        const existing = existingMap.get(id);
-                        existingMap.set(id, { ...existing, ...row });
-                    }
-                    else {
-                        existingMap.set(id, row);
-                    }
-                }
+            finalData = xlsx.utils.sheet_to_json(sheet, {
+                defval: '', // keep empty cells
             });
         }
         else {
-            // Parse uploaded CSV file
-            await new Promise((resolve, reject) => {
+            // ===== CSV → JSON =====
+            finalData = await new Promise((resolve, reject) => {
+                const rows = [];
                 fs_1.default.createReadStream(req.file.path)
                     .pipe((0, csv_parse_1.parse)({ columns: true, skip_empty_lines: true, trim: true }))
-                    .on('data', (row) => {
-                    const id = row['li item id'];
-                    if (id && existingMap.has(id)) {
-                        // Update existing (merge fields)
-                        const existing = existingMap.get(id);
-                        existingMap.set(id, { ...existing, ...row });
-                    }
-                    else {
-                        // Add new
-                        existingMap.set(id, row);
-                    }
-                })
-                    .on('end', () => resolve())
+                    .on('data', (row) => rows.push(row))
+                    .on('end', () => resolve(rows))
                     .on('error', reject);
             });
         }
-        // Convert map back to array
-        const finalData = Array.from(existingMap.values());
+        // 🔥 DIRECT REPLACE
         await writeCSV(finalData);
-        // Cleanup uploaded file
+        // cleanup
         fs_1.default.unlinkSync(req.file.path);
-        res.json({ message: 'Merged successfully', count: finalData.length });
+        res.json({
+            message: 'CSV replaced successfully',
+            count: finalData.length,
+        });
     }
     catch (err) {
         res.status(500).json({ error: err.message });
@@ -276,6 +254,7 @@ io.on('connection', (socket) => {
                 });
             }
             await writeCSV(newcsv);
+            socket.emit('completed_scraping');
         }
         catch (err) {
             console.error(err);
