@@ -39,10 +39,10 @@ def productdetail(link):
         # Click cookie button first
         try:
             try:
-                page.get_by_role("button", name="Accept All Cookies").click(timeout=0)
+                page.get_by_role("button", name="Accept All Cookies").click(timeout=2000)
             except:
                 try:
-                    page.get_by_role("button", name="Close").click(timeout=0)
+                    page.get_by_role("button", name="Close").click(timeout=2000)
                 except:
                     pass
 
