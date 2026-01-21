@@ -9,3 +9,4 @@ backend/*.js
 backend/*.map
 node_modules
 .env
+data.csv
