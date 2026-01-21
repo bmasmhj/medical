@@ -53,7 +53,6 @@ const execAsync = (0, util_1.promisify)(child_process_1.exec);
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 const httpServer = (0, http_1.createServer)(app);
-const path = __importDefault(require('path'));
 const io = new socket_io_1.Server(httpServer, {
     cors: {
         origin: "*", // Allow all for dev simplicity (or restrict to renderer URL)
@@ -98,10 +97,7 @@ const writeCSV = (data) => {
         });
     });
 };
-
 app.use(express_1.default.static(path_1.default.join(__dirname, 'renderer')));
-
-
 app.get('/api/data', async (req, res) => {
     try {
         const data = await readCSV();
@@ -262,7 +258,7 @@ io.on('connection', (socket) => {
     });
 });
 app.get('*', (req, res) => {
-  res.sendFile(path_1.default.join(__dirname, 'renderer/index.html'));
+    res.sendFile(path_1.default.join(__dirname, 'renderer/index.html'));
 });
 httpServer.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
