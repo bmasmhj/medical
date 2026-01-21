@@ -11,7 +11,7 @@
     },
     "include": [
         "*.ts"
-    ],
+, "../src/apiUrls.ts", "../src/categoryFetcher.ts"    ],
     "exclude": [
         "node_modules",
         "venv",
