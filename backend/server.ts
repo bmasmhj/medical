@@ -65,6 +65,9 @@ const writeCSV = (data: any[]): Promise<void> => {
     });
 };
 
+app.use(express.static(path.join(__dirname, 'renderer')));
+
+
 app.get('/api/data', async (req, res) => {
     try {
         const data = await readCSV();
