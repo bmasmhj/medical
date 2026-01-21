@@ -77,6 +77,7 @@ IF NOT EXIST package.json (
   exit /b
 )
 
+
 :: ===============================
 :: GIT RESET HARD
 :: ===============================
@@ -84,6 +85,17 @@ echo 📦 Resetting local changes...
 git reset --hard
 IF ERRORLEVEL 1 (
   echo ❌ Git reset failed
+  pause
+  popd
+  exit /b
+)
+
+:: ===============================
+:: Check git repo to main
+:: ===============================
+echo 📦 Checking git repository...
+git checkout main || (
+  echo ❌ Git checkout main failed
   pause
   popd
   exit /b
