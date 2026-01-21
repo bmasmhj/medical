@@ -261,8 +261,18 @@ app.get('*', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, 'renderer/index.html'));
 });
 httpServer.listen(PORT, () => {
-    console.log(`Backend running on http://localhost:${PORT}`);
+    console.log(`App is running on http://localhost:${PORT}`);
 });
+
+
+httpServer.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.error('You have already opened app , please close the other window to start a new one');
+        process.exit(1);
+    }
+});
+
+
 async function fetchProductData(code, slug) {
     let urlParsed = encodeURIComponent(slug);
     let data = `{"requests":[{"indexName":"prod_cwr-cw-au_products_en_query_suggestions","query":"${slug}","params":"hitsPerPage=5&highlightPreTag=__aa-highlight__&highlightPostTag=__%2Faa-highlight__&clickAnalytics=true"},{"indexName":"prod_cwr-cw-au_products_en","params":"hitsPerPage=3&highlightPreTag=__aa-highlight__&highlightPostTag=__%2Faa-highlight__&query=${urlParsed}&ruleContexts=%5B%22default%22%5D&clickAnalytics=true"}]}`;
