@@ -224,6 +224,11 @@ io.on('connection', (socket) => {
                             const scriptPath = path_1.default.join(__dirname, 'single.py');
                             const { stdout } = await execAsync(`"${pythonPath}" "${scriptPath}" "${item['cw_url']}"`);
                             console.log(`Python script output: ${stdout}`);
+                            // Price information not found.
+                            if(stdout.trim() === 'not_found'){
+                                price = 'Invalid Url';
+                                medicare_price = 'Invalid Url';
+                            }
                             const scrapedPrice = parseFloat(stdout.trim().split(' -!- ')[0].replace('$', ''));
                             const scrapedMedicarePrice = parseFloat(stdout.trim().split(' -!- ')[1].replace('$', ''));
                             if (!isNaN(scrapedPrice)) {
@@ -314,14 +319,8 @@ async function fetchProductData(code, slug) {
         for (const result of response.data.results) {
             const product = result.hits.find((p) => p.slug.en === combinedSug);
             if (product) {
-                let newPrice = 0;
                 let medicare_price = 0;
-                if (product['prices']['AUD']['priceValues'][0]['customFields']['private-price'] && product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount']) {
-                    newPrice = product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount'] / 100;
-                }
-                else {
-                    newPrice = product.calculatedPrice / 100;
-                }
+                let newPrice = getPrice(product);
                 medicare_price = product.calculatedPrice / 100;
                 return {
                     name: product.name.en,
@@ -336,4 +335,20 @@ async function fetchProductData(code, slug) {
         console.error(error);
     }
     return null;
+}
+
+
+function getPrice(product){
+    let newPrice = 0;
+
+    if(product && product['prices'] && product['prices']['AUD'] && product['prices']['AUD']['priceValues'] && product['prices']['AUD']['priceValues'][0] && product['prices']['AUD']['priceValues'][0]['customFields'] && product['prices']['AUD']['priceValues'][0]['customFields']['private-price']){
+            newPrice = product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount'] / 100;
+    }
+    else if(product && product['pricesCustomFields'] && product['pricesCustomFields']['AUD'] && product['pricesCustomFields']['AUD']['private-price']){
+        newPrice = product['pricesCustomFields']['AUD']['private-price']['centAmount'] / 100;
+    }
+    else {
+        newPrice = product.calculatedPrice / 100;
+    }
+    return newPrice;
 }
