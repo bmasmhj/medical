@@ -189,7 +189,8 @@ io.on('connection', (socket) => {
                         if (doneItem) {
                             newcsv.push({
                                 ...item,
-                                private_price : doneItem['private_price']
+                                private_price : doneItem['private_price'],
+                                medicare_price : doneItem['medicare_price']
                             });
                         }
                         continue;
@@ -198,6 +199,7 @@ io.on('connection', (socket) => {
                     const data = await fetchProductData(code, slugUrl);
                     console.log(data);
                     let price = data?.price || 0;
+                    let medicare_price = data?.medicare_price || 0;
                     if (price === 0) {
                         console.log(`Price not found for ${slugUrl}, trying python script...`);
                         try {
@@ -222,9 +224,13 @@ io.on('connection', (socket) => {
                             const scriptPath = path_1.default.join(__dirname, 'single.py');
                             const { stdout } = await execAsync(`"${pythonPath}" "${scriptPath}" "${item['cw_url']}"`);
                             console.log(`Python script output: ${stdout}`);
-                            const scrapedPrice = parseFloat(stdout.trim().replace('$', ''));
+                            const scrapedPrice = parseFloat(stdout.trim().split(' -!- ')[0].replace('$', ''));
+                            const scrapedMedicarePrice = parseFloat(stdout.trim().split(' -!- ')[1].replace('$', ''));
                             if (!isNaN(scrapedPrice)) {
                                 price = scrapedPrice;
+                            }
+                            if (!isNaN(scrapedMedicarePrice)) {
+                                medicare_price = scrapedMedicarePrice;
                             }
                         }
                         catch (e) {
@@ -233,11 +239,13 @@ io.on('connection', (socket) => {
                     }
                     newcsv.push({
                         ...item,
-                        private_price : price
+                        private_price : price,
+                        medicare_price : medicare_price
                     });
                     uniqueDoneItems.push({
                         ...item,
-                        private_price : price
+                        private_price : price,
+                        medicare_price : medicare_price
                     });
                 }
                 else {
@@ -307,15 +315,18 @@ async function fetchProductData(code, slug) {
             const product = result.hits.find((p) => p.slug.en === combinedSug);
             if (product) {
                 let newPrice = 0;
+                let medicare_price = 0;
                 if (product['prices']['AUD']['priceValues'][0]['customFields']['private-price'] && product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount']) {
                     newPrice = product['prices']['AUD']['priceValues'][0]['customFields']['private-price']['centAmount'] / 100;
                 }
                 else {
                     newPrice = product.calculatedPrice / 100;
                 }
+                medicare_price = product.calculatedPrice / 100;
                 return {
                     name: product.name.en,
                     price: newPrice,
+                    medicare_price: medicare_price,
                     slug: product.slug.en
                 };
             }

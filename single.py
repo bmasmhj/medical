@@ -73,10 +73,10 @@ def productdetail(link):
             content = page.content()
             soup = BeautifulSoup(content, "html.parser")
             ul_elibility = soup.find("ul", class_="h-max max-h-[316px] overflow-y-auto bg-white p-0")
-            
             if ul_elibility:
                 # Get all li text
                 li_elibility = ul_elibility.find_all("li", class_="p-space-400 flex flex-col aria-disabled:text-gray-500")
+                rrp_f = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
                 for li in li_elibility:
                     if li.text.strip() == "No Medicare card":
                        page.get_by_role("option", name="No Medicare card").click()
@@ -86,20 +86,20 @@ def productdetail(link):
                        desc_div = soup.find("div", class_="space-y-space-400 md:space-y-space-500 lg:space-y-space-600 flex w-full flex-col items-start self-stretch lg:w-[26rem] lg:flex-shrink-0")
                        if desc_div:
                             rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
-                            print(rrp)
+                            print(f"{rrp} -!- {rrp_f}")
 
             else:
                 if desc_div:
                     rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
-                    print(rrp)
+                    print(f"{rrp} -!- {rrp}")
         except Exception as e:
             if desc_div:
                 rrp = desc_div.find("h2" , class_="display-l text-colour-title-light").text.strip()
-                print(rrp)
+                print(f"{rrp} -!- {rrp}")
                 browser.close()
                 return
             else :
-                print("0")
+                print("0 -!- 0")
                 browser.close()
                 return
         browser.close()
